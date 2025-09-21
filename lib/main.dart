@@ -17,20 +17,17 @@ class KilnPilot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: globalBlocProviders,
-      child: MaterialApp.router(
-        title: AppConstants.appName,
-        routerConfig: router,
-        theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
-        builder: (context, child) => ResponsiveBreakpoints.builder(
-          child: child!,
-          breakpoints: const [
-            Breakpoint(start: 0, end: 450, name: MOBILE),
-            Breakpoint(start: 451, end: 800, name: TABLET),
-            Breakpoint(start: 801, end: 1920, name: DESKTOP),
-          ],
-        ),
+    return MaterialApp.router(
+      title: AppConstants.appName,
+      routerConfig: router,
+      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
+      builder: (context, child) => ResponsiveBreakpoints.builder(
+        child: child!,
+        breakpoints: const [
+          Breakpoint(start: 0, end: 450, name: MOBILE),
+          Breakpoint(start: 451, end: 800, name: TABLET),
+          Breakpoint(start: 801, end: 1920, name: DESKTOP),
+        ],
       ),
     );
   }
