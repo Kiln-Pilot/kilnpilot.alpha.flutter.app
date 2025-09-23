@@ -1,13 +1,17 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:kilnpilot_alpha_flutter_app/constants/app_constants.dart';
-import 'package:kilnpilot_alpha_flutter_app/global_declarations.dart';
 import 'package:kilnpilot_alpha_flutter_app/router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
-void main() {
+import 'firebase_options.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   usePathUrlStrategy();
   runApp(const KilnPilot());
 }
