@@ -1,0 +1,37 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "kiln-pilot",
+          "appId": "1:225035134736:android:2e6b2586c7e351e4216795",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kiln-pilot",
+          "configurations": {
+            "android": "1:225035134736:android:2e6b2586c7e351e4216795",
+            "ios": "1:225035134736:ios:0573cd8bb8cce780216795",
+            "web": "1:225035134736:web:f1f2ff3c5bda48c2216795"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
