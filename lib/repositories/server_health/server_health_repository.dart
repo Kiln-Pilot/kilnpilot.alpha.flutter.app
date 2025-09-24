@@ -1,28 +1,48 @@
 import 'package:dio/dio.dart';
+import 'package:logger/logger.dart';
+import '../../constants/app_constants.dart';
 
 class HealthRepository {
-  final Dio dio;
-  final String baseUrl;
-
-  HealthRepository({required this.dio, required this.baseUrl});
+  final Dio _client = Dio(BaseOptions(baseUrl: AppConstants.baseUrl));
+  final Logger _logger = Logger();
 
   Future<Response> getHealth() async {
-    final response = await dio.get('$baseUrl/health');
-    return response;
+    try {
+      final response = await _client.get('/health');
+      return response;
+    } catch (e, st) {
+      _logger.e('Error fetching health', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   Future<Response> getDetailedHealth() async {
-    final response = await dio.get('$baseUrl/health/detailed');
-    return response;
+    try {
+      final response = await _client.get('/health/detailed');
+      return response;
+    } catch (e, st) {
+      _logger.e('Error fetching detailed health', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   Future<Response> getReadiness() async {
-    final response = await dio.get('$baseUrl/health/readiness');
-    return response;
+    try {
+      final response = await _client.get('/health/readiness');
+      return response;
+    } catch (e, st) {
+      _logger.e('Error fetching readiness', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   Future<Response> getLiveness() async {
-    final response = await dio.get('$baseUrl/health/liveness');
-    return response;
+    try {
+      final response = await _client.get('/health/liveness');
+      return response;
+    } catch (e, st) {
+      _logger.e('Error fetching liveness', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 }

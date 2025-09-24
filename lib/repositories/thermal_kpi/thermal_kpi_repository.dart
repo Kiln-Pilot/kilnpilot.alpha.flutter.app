@@ -1,42 +1,58 @@
 import 'package:dio/dio.dart';
+import 'package:logger/logger.dart';
+import '../../constants/app_constants.dart';
 
 class ThermalRepository {
-  final Dio dio;
-  final String baseUrl;
-
-  ThermalRepository({required this.dio, required this.baseUrl});
+  final Dio _client = Dio(BaseOptions(baseUrl: AppConstants.baseUrl));
+  final Logger _logger = Logger();
 
   Future<Response> scanImage({required String filePath}) async {
-    final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(filePath),
-    });
-    final response = await dio.post(
-      '$baseUrl/thermal/scan-image',
-      data: formData,
-      options: Options(contentType: 'multipart/form-data'),
-    );
-    return response;
+    try {
+      final formData = FormData.fromMap({'file': await MultipartFile.fromFile(filePath)});
+      final response = await _client.post(
+        '/thermal/scan-image',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      return response;
+    } catch (e, st) {
+      _logger.e('Error scanning image', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   Future<Response> scanVideo({required String filePath}) async {
-    final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(filePath),
-    });
-    final response = await dio.post(
-      '$baseUrl/thermal/scan-video',
-      data: formData,
-      options: Options(contentType: 'multipart/form-data'),
-    );
-    return response;
+    try {
+      final formData = FormData.fromMap({'file': await MultipartFile.fromFile(filePath)});
+      final response = await _client.post(
+        '/thermal/scan-video',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      return response;
+    } catch (e, st) {
+      _logger.e('Error scanning video', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   Future<Response> getThermalConfig() async {
-    final response = await dio.get('$baseUrl/thermal/config');
-    return response;
+    try {
+      final response = await _client.get('/thermal/config');
+      return response;
+    } catch (e, st) {
+      _logger.e('Error fetching thermal config', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   Future<Response> getSupportedFormats() async {
-    final response = await dio.get('$baseUrl/thermal/supported-formats');
-    return response;
+    try {
+      final response = await _client.get('/thermal/supported-formats');
+      return response;
+    } catch (e, st) {
+      _logger.e('Error fetching supported formats', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 }
