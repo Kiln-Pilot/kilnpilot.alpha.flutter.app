@@ -4,6 +4,8 @@ import 'package:kilnpilot_alpha_flutter_app/screens/dashboard/dashboard.dart';
 import 'package:kilnpilot_alpha_flutter_app/screens/dashboard/dashboard_shell.dart';
 
 class ChatScreen extends StatelessWidget {
+  const ChatScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Chat Screen'));
@@ -11,6 +13,8 @@ class ChatScreen extends StatelessWidget {
 }
 
 class KilnOptimizationsScreen extends StatelessWidget {
+  const KilnOptimizationsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Kiln Optimizations Screen'));
