@@ -17,24 +17,31 @@ class DashboardShell extends StatefulWidget {
 class _DashboardShellState extends State<DashboardShell> {
   int currentIndex = 0;
 
-  final List<List<dynamic>> navItems = [
-    ["Dashboard", Icons.dashboard_outlined, "/dashboard"],
-    ["Chat", Icons.chat_bubble_outline, "/dashboard/chat"],
-    ["Kiln Optimizations", Icons.settings_outlined, "/dashboard/optimizations"],
+  // Updated navItems: add a section header and a KPI entry
+  final List<Map<String, dynamic>> navItems = [
+    {"type": "item", "label": "Dashboard", "icon": Icons.dashboard_outlined, "route": "/dashboard"},
+    {"type": "item", "label": "Chat", "icon": Icons.chat_bubble_outline, "route": "/dashboard/chat"},
+    {"type": "item", "label": "Kiln Optimizations", "icon": Icons.settings_outlined, "route": "/dashboard/optimizations"},
+    {"type": "section", "label": "KPI"},
+    {"type": "item", "label": "Kiln Temperature", "icon": Icons.thermostat, "route": "/dashboard/kiln-temperature"},
   ];
 
   void changeTab(int index) {
     if (index == currentIndex) return;
     setState(() {
       currentIndex = index;
-      context.go(navItems[index][2] as String);
+      final item = navItems[index];
+      if (item["type"] == "item") {
+        context.go(item["route"] as String);
+      }
     });
   }
 
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
     for (int i = 0; i < navItems.length; i++) {
-      if (location == navItems[i][2]) {
+      final item = navItems[i];
+      if (item["type"] == "item" && location == item["route"]) {
         return i;
       }
     }
@@ -126,11 +133,23 @@ class _DashboardShellState extends State<DashboardShell> {
                       itemCount: navItems.length,
                       itemBuilder: (context, index) {
                         final item = navItems[index];
+                        if (item["type"] == "section") {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            child: Text(
+                              item["label"],
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          );
+                        }
                         final isSelected = index == currentIndex;
                         return ListTile(
-                          leading: Icon(item[1], color: isSelected ? Theme.of(context).colorScheme.primary : null),
+                          leading: Icon(item["icon"], color: isSelected ? Theme.of(context).colorScheme.primary : null),
                           title: Text(
-                            item[0],
+                            item["label"],
                             style: TextStyle(color: isSelected ? Theme.of(context).colorScheme.primary : null),
                           ),
                           selected: isSelected,
