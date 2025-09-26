@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../repositories/cement_operations/cement_operations_repository.dart';
+import '../../repositories/cement_operations/chatbot_repository.dart';
 import '../../repositories/cement_operations/serializers/user_sessions_response.dart';
 import '../../repositories/cement_operations/serializers/cement_session_response.dart';
 import '../../repositories/cement_operations/serializers/chat_history_response.dart';
@@ -8,7 +8,7 @@ part 'chatbot_session_event.dart';
 part 'chatbot_session_state.dart';
 
 class ChatbotSessionBloc extends Bloc<ChatbotSessionEvent, ChatbotSessionState> {
-  final CementOperationsRepository repository;
+  final ChatbotRepository repository;
   ChatbotSessionBloc(this.repository) : super(ChatbotSessionInitial()) {
     on<ChatbotGetUserSessionsEvent>((event, emit) async {
       emit(ChatbotSessionLoading());
