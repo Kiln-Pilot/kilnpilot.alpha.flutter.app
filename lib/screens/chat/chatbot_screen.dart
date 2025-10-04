@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../blocs/chatbot/chatbot_session_bloc.dart';
 import '../../blocs/chatbot/chatbot_bloc.dart';
 import '../../repositories/cement_operations/serializers/cement_query_request.dart';
@@ -30,13 +31,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty || _sessionId == null) return;
-    context.read<ChatbotBloc>().add(ChatbotQueryEvent(
-      CementQueryRequest(
-        query: text,
-        sessionId: _sessionId,
-        userId: _userId,
-      ),
-    ));
+    context.read<ChatbotBloc>().add(
+      ChatbotQueryEvent(CementQueryRequest(query: text, sessionId: _sessionId, userId: _userId)),
+    );
     setState(() {
       _messages.add({'role': 'user', 'content': text});
       _controller.clear();
@@ -59,32 +56,59 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   Widget _buildSessionSelector() {
     return AlertDialog(
-      title: const Text('Select or Create Session'),
+      backgroundColor: Colors.white,
+      title: Text('Select or Create Session', style: GoogleFonts.poppins()),
       content: SizedBox(
-        width: 350,
+        width: 500,
         child: _userSessions.isEmpty
             ? const Text('No sessions found. Create a new session?')
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ..._userSessions.map((session) => ListTile(
-                        title: Text('Session: ${session.sessionId}'),
-                        subtitle: Text('Created: ${session.createdAt}'),
-                        onTap: () => _onSessionSelected(session),
-                      )),
+                  ..._userSessions.asMap().entries.map((entry) {
+                    final idx = entry.key + 1;
+                    final session = entry.value;
+                    final createdAt = DateTime.tryParse(session.createdAt);
+                    final formattedDate = createdAt != null
+                        ? '${createdAt.month}/${createdAt.day}/${createdAt.year} ${createdAt.hour % 12}:${createdAt.minute.toString().padLeft(2, '0')} ${createdAt.hour >= 12 ? 'PM' : 'AM'}'
+                        : session.createdAt;
+                    return ListTile(
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.all(8),
+                        child: Center(
+                          child: Text(
+                            '$idx',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      title: Text('Chat Session ID: ${session.sessionId}'),
+                      subtitle: Text('Created: $formattedDate'),
+                      onTap: () => _onSessionSelected(session),
+                    );
+                  }),
                 ],
               ),
       ),
       actions: [
-        TextButton(
-          onPressed: _onCreateSession,
-          child: const Text('Create New Session'),
-        ),
-        if (_userSessions.isNotEmpty)
-          TextButton(
-            onPressed: () => setState(() => _showSessionSelector = false),
-            child: const Text('Cancel'),
+        SizedBox(
+          height: 40,
+          child: FilledButton.icon(
+            icon: Icon(Icons.add, color: Colors.grey.shade800),
+            label:  Text('Create New Session', style: GoogleFonts.poppins(color: Colors.grey.shade800, fontWeight: FontWeight.w600)),
+            onPressed: _onCreateSession,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey.shade200,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            // child: const Text('Create New Session'),
           ),
+        ),
       ],
     );
   }
@@ -114,10 +138,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               setState(() {
                 _messages.clear();
                 for (final msg in state.response.messages) {
-                  _messages.add({
-                    'role': msg.role,
-                    'content': msg.message,
-                  });
+                  _messages.add({'role': msg.role, 'content': msg.message});
                 }
               });
             } else if (state is ChatbotUserSessionsSuccess && _showSessionSelector) {
@@ -151,11 +172,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 setState(() => _showSessionSelector = true);
               },
             ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Create New Session',
-              onPressed: _onCreateSession,
-            ),
+            IconButton(icon: const Icon(Icons.add), tooltip: 'Create New Session', onPressed: _onCreateSession),
           ],
         ),
         body: Stack(
@@ -192,10 +209,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 BlocBuilder<ChatbotSessionBloc, ChatbotSessionState>(
                   builder: (context, state) {
                     if (state is ChatbotSessionLoading) {
-                      return const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: CircularProgressIndicator(),
-                      );
+                      return const Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator());
                     } else if (state is ChatbotSessionError) {
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -208,10 +222,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 BlocBuilder<ChatbotBloc, ChatbotState>(
                   builder: (context, state) {
                     if (state is ChatbotLoading) {
-                      return const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: CircularProgressIndicator(),
-                      );
+                      return const Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator());
                     } else if (state is ChatbotError) {
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -229,15 +240,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         child: TextField(
                           controller: _controller,
                           onSubmitted: (_) => _sendMessage(),
-                          decoration: const InputDecoration(
-                            hintText: 'Ask about cement operations...'
-                          ),
+                          decoration: const InputDecoration(hintText: 'Ask about cement operations...'),
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.send),
-                        onPressed: _sendMessage,
-                      ),
+                      IconButton(icon: const Icon(Icons.send), onPressed: _sendMessage),
                     ],
                   ),
                 ),
