@@ -31,3 +31,10 @@ final class ThermalKpiSupportedFormatsSuccess extends ThermalKpiState {
   final SupportedFormatsResponse data;
   ThermalKpiSupportedFormatsSuccess(this.data);
 }
+
+final class ThermalStreamConnected extends ThermalKpiState {}
+final class ThermalStreamDisconnected extends ThermalKpiState {}
+final class ThermalStreamAnalysis extends ThermalKpiState {
+  final Map<String, dynamic> analysis;
+  ThermalStreamAnalysis(this.analysis);
+}

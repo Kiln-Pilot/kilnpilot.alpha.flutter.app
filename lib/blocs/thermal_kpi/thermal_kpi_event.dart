@@ -17,3 +17,15 @@ final class ScanVideoEvent extends ThermalKpiEvent {
 final class FetchThermalConfigEvent extends ThermalKpiEvent {}
 
 final class FetchSupportedFormatsEvent extends ThermalKpiEvent {}
+
+final class StartThermalStreamEvent extends ThermalKpiEvent {
+  final String? sessionId;
+  StartThermalStreamEvent({this.sessionId});
+}
+
+final class SendThermalFrameEvent extends ThermalKpiEvent {
+  final Map<String, dynamic> frame;
+  SendThermalFrameEvent(this.frame);
+}
+
+final class StopThermalStreamEvent extends ThermalKpiEvent {}

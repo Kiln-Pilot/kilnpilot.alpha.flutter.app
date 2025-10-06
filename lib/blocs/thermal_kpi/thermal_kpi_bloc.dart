@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
 
 import '../../repositories/thermal_kpi/serializers/supported_formats_response.dart';
 import '../../repositories/thermal_kpi/thermal_kpi_repository.dart';
@@ -54,6 +55,37 @@ class ThermalKpiBloc extends Bloc<ThermalKpiEvent, ThermalKpiState> {
       } catch (e) {
         emit(ThermalKpiError(e.toString()));
       }
+    });
+    on<StartThermalStreamEvent>((event, emit) async {
+      emit(ThermalKpiLoading());
+      try {
+        final connection = repository.connectThermalStream(sessionId: event.sessionId);
+        emit(ThermalStreamConnected());
+        await for (final message in connection.stream) {
+          try {
+            final data = message is String ? jsonDecode(message) : message;
+            if (data['message_type'] == 'analysis') {
+              emit(ThermalStreamAnalysis(data));
+            }
+          } catch (e) {
+            emit(ThermalKpiError('Stream message error: $e'));
+          }
+        }
+        emit(ThermalStreamDisconnected());
+      } catch (e) {
+        emit(ThermalKpiError('Stream connection error: $e'));
+      }
+    });
+    on<SendThermalFrameEvent>((event, emit) async {
+      try {
+        repository.sendThermalFrame(event.frame);
+      } catch (e) {
+        emit(ThermalKpiError('Send frame error: $e'));
+      }
+    });
+    on<StopThermalStreamEvent>((event, emit) async {
+      repository.closeThermalStream();
+      emit(ThermalStreamDisconnected());
     });
   }
 }
