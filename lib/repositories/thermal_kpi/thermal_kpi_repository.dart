@@ -76,7 +76,10 @@ class ThermalRepository {
   }
 
   ThermalStreamConnection connectThermalStream({String? sessionId}) {
-    final url = '${AppConstants.baseUrl.replaceFirst('http', 'ws')}/kiln-temperature-kpi/stream';
+    // Use ws or wss based on isSsl
+    final wsProtocol = AppConstants.isSsl ? 'wss' : 'ws';
+    final host = AppConstants.host.replaceAll(RegExp(r'^https?://'), '');
+    final url = '$wsProtocol://$host${AppConstants.mentionPort ? ':${AppConstants.port}' : ''}/api/v1/kiln-temperature-kpi/stream';
     final uri = sessionId != null ? '$url?session_id=$sessionId' : url;
     final channel = WebSocketChannel.connect(Uri.parse(uri));
     _logger.i('Connecting to thermal stream: $uri');
