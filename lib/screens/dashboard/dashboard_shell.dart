@@ -24,11 +24,11 @@ class _DashboardShellState extends State<DashboardShell> {
     {"type": "item", "label": "Chat", "icon": Icons.chat_bubble_outline, "route": "/dashboard/chat"},
     {
       "type": "item",
-      "label": "Kiln Optimizations",
+      "label": "Optimizations",
       "icon": Icons.settings_outlined,
       "route": "/dashboard/optimizations",
     },
-    {"type": "section", "label": "KPI"},
+    {"type": "section", "label": "KPIs"},
     {"type": "item", "label": "Kiln Temperature", "icon": Icons.thermostat, "route": "/dashboard/kiln-temperature"},
   ];
 
@@ -173,12 +173,13 @@ class _DashboardShellState extends State<DashboardShell> {
                               final item = navItems[index];
                               if (item["type"] == "section") {
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                   child: Text(
                                     item["label"],
-                                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    style: GoogleFonts.poppins(
                                       color: Colors.grey[700],
                                       fontWeight: FontWeight.bold,
+                                      fontSize: 18
                                     ),
                                   ),
                                 );

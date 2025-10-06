@@ -99,25 +99,27 @@ class _DashboardState extends State<Dashboard> {
         ];
         break;
     }
-    return Card(
-      margin: EdgeInsets.all(12),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            SizedBox(height: 8),
-            SizedBox(
-              height: 200,
-              child: SfCartesianChart(
-                primaryXAxis: DateTimeAxis(intervalType: DateTimeIntervalType.seconds),
-                primaryYAxis: NumericAxis(title: AxisTitle(text: yLabel)),
-                series: series,
-              ),
+    return Container(
+      margin: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          SizedBox(height: 8),
+          SizedBox(
+            height: 200,
+            child: SfCartesianChart(
+              primaryXAxis: DateTimeAxis(intervalType: DateTimeIntervalType.seconds),
+              primaryYAxis: NumericAxis(title: AxisTitle(text: yLabel)),
+              series: series,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
