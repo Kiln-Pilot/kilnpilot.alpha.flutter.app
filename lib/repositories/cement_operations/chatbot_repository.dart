@@ -12,7 +12,7 @@ class ChatbotRepository {
   Future<Response> queryCementOperations(CementQueryRequest request) async {
     try {
       final response = await _client.post(
-        '/cement/query',
+        '/chat/query',
         data: request.toJson(),
       );
       return response;
@@ -25,7 +25,7 @@ class ChatbotRepository {
   Future<Response> createSession({String? userId, String? sessionId}) async {
     try {
       final response = await _client.post(
-        '/cement/session',
+        '/chat/session',
         data: {
           'user_id': dummyUserId,
           if (sessionId != null) 'session_id': sessionId,
@@ -40,7 +40,7 @@ class ChatbotRepository {
 
   Future<Response> getAgentConfig() async {
     try {
-      final response = await _client.get('/cement/config');
+      final response = await _client.get('/chat/config');
       return response;
     } catch (e, st) {
       _logger.e('Error fetching cement agent config', error: e, stackTrace: st);
@@ -50,7 +50,7 @@ class ChatbotRepository {
 
   Future<Response> getSessionInfo(String sessionId) async {
     try {
-      final response = await _client.get('/cement/session/$sessionId');
+      final response = await _client.get('/chat/session/$sessionId');
       return response;
     } catch (e, st) {
       _logger.e('Error fetching cement session info', error: e, stackTrace: st);
@@ -60,7 +60,7 @@ class ChatbotRepository {
 
   Future<Response> getAgentCapabilities() async {
     try {
-      final response = await _client.get('/cement/capabilities');
+      final response = await _client.get('/chat/capabilities');
       return response;
     } catch (e, st) {
       _logger.e('Error fetching cement agent capabilities', error: e, stackTrace: st);
@@ -70,7 +70,7 @@ class ChatbotRepository {
 
   Future<Response> getUserSessions(String userId) async {
     try {
-      final response = await _client.get('/cement/user/$dummyUserId/sessions');
+      final response = await _client.get('/chat/user/$dummyUserId/sessions');
       return response;
     } catch (e, st) {
       _logger.e('Error fetching user sessions', error: e, stackTrace: st);
@@ -81,7 +81,7 @@ class ChatbotRepository {
   Future<Response> getChatHistory({required String sessionId, required String userId}) async {
     try {
       final response = await _client.get(
-        '/cement/session/$sessionId/chat-history',
+        '/chat/session/$sessionId/chat-history',
         queryParameters: {'user_id': userId},
       );
       return response;
