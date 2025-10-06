@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kilnpilot_alpha_flutter_app/blocs/optimization/optimization_bloc.dart';
 import 'package:kilnpilot_alpha_flutter_app/screens/optimization/dialog/create_optimization_dialog.dart';
 
 class OptimizationDetailScreen extends StatelessWidget {
   final String optimizationId;
+
   const OptimizationDetailScreen({super.key, required this.optimizationId});
 
   @override
@@ -24,86 +26,122 @@ class OptimizationDetailScreen extends StatelessWidget {
           } else if (state is OptimizationLoaded) {
             final opt = state.optimization;
             return Scaffold(
-              appBar: AppBar(
-                title: Text(opt.name),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    tooltip: 'Edit',
-                    onPressed: () async {
-                      final bloc = context.read<OptimizationBloc>();
-                      final result = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => BlocProvider.value(
-                          value: bloc,
-                          child: CreateOptimizationDialog(initialData: opt),
-                        ),
-                      );
-                      if (result == true) {
-                        context.read<OptimizationBloc>().add(GetOptimization(opt.id));
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    tooltip: 'Delete',
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Delete Optimization'),
-                          content: const Text('Are you sure you want to delete this optimization?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirm == true) {
-                        context.read<OptimizationBloc>().add(DeleteOptimization(opt.id));
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  ),
-                ],
-              ),
+              backgroundColor: Colors.white,
               body: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: ListView(
                   children: [
+                    Row(
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            opt.name,
+                            style: GoogleFonts.poppins(fontSize: 54, fontWeight: FontWeight.w400),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Spacer(),
+                        // edit button
+                        SizedBox(
+                          height: 50,
+                          width: 250,
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.edit, size: 22),
+                            label: Text(
+                              'Edit Optimization',
+                              style: GoogleFonts.poppins(color: Colors.black, fontSize: 18),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey.shade200,
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                            ),
+                            onPressed: () async {
+                              final bloc = context.read<OptimizationBloc>();
+                              final result = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => BlocProvider.value(
+                                  value: bloc,
+                                  child: CreateOptimizationDialog(initialData: opt),
+                                ),
+                              );
+                              if (result == true) {
+                                context.read<OptimizationBloc>().add(GetOptimization(opt.id));
+                              }
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        // delete button same style as above
+                        SizedBox(
+                          height: 50,
+                          width: 260,
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.delete, size: 22),
+                            label: Text(
+                              'Delete Optimization',
+                              style: GoogleFonts.poppins(color: Colors.black, fontSize: 18),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey.shade200,
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                            ),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Delete Optimization'),
+                                  content: const Text('Are you sure you want to delete this optimization?'),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                context.read<OptimizationBloc>().add(DeleteOptimization(opt.id));
+                                Navigator.of(context).pop();
+                              }
+                            },
+                          ),
+                        ),
+
+                      ],
+                    ),
                     Text('KPI Code: ${opt.kpiCode}', style: Theme.of(context).textTheme.titleMedium),
                     Text('Active: ${opt.active ? "Yes" : "No"}'),
                     Text('Begin Time: ${opt.beginTime}'),
                     Text('End Time: ${opt.endTime}'),
                     const SizedBox(height: 24),
                     Text('Severity Classes', style: Theme.of(context).textTheme.titleLarge),
-                    ...opt.severityClasses.map((sc) => Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Level: ${sc.level}', style: Theme.of(context).textTheme.titleMedium),
-                            Text('Name: ${sc.name}'),
-                            Text('Description: ${sc.description}'),
-                            Text('Type: ${sc.type}'),
-                            const SizedBox(height: 8),
-                            Text('Thresholds:', style: Theme.of(context).textTheme.bodyLarge),
-                            ..._buildThresholds(sc, opt.kpiCode),
-                            const SizedBox(height: 8),
-                            Text('Actions:', style: Theme.of(context).textTheme.bodyLarge),
-                            ...sc.actions.map((a) => Text('- ${a.name}: ${a.description}')),
-                          ],
+                    ...opt.severityClasses.map(
+                      (sc) => Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Level: ${sc.level}', style: Theme.of(context).textTheme.titleMedium),
+                              Text('Name: ${sc.name}'),
+                              Text('Description: ${sc.description}'),
+                              Text('Type: ${sc.type}'),
+                              const SizedBox(height: 8),
+                              Text('Thresholds:', style: Theme.of(context).textTheme.bodyLarge),
+                              ..._buildThresholds(sc, opt.kpiCode),
+                              const SizedBox(height: 8),
+                              Text('Actions:', style: Theme.of(context).textTheme.bodyLarge),
+                              ...sc.actions.map((a) => Text('- ${a.name}: ${a.description}')),
+                            ],
+                          ),
                         ),
                       ),
-                    )),
+                    ),
                   ],
                 ),
               ),
