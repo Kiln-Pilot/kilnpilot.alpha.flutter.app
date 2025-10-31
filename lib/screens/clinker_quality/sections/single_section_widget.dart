@@ -54,6 +54,7 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
+            color: Colors.grey.shade100,
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -69,9 +70,16 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: controllers[k]!.text.isNotEmpty ? controllers[k]!.text : null,
-                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  isDense: true,
+                  fillColor: Colors.white,
+                  label: Text(meta['label']!),
+                  filled: true,
+                ),
                 items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
                 onChanged: (v) => controllers[k]!.text = v ?? '',
+                dropdownColor: Colors.white,
                 validator: (v) {
                   if (v == null || v.toString().trim().isEmpty) return 'Required';
                   return null;
@@ -84,6 +92,7 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          color: Colors.grey.shade100,
           border: Border.all(color: Colors.grey[300]!),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -101,15 +110,19 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
               controller: controllers[k],
               keyboardType: meta['type'] == 'int'
                   ? TextInputType.number
-                  : (meta['type'] == 'float' ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text),
+                  : (meta['type'] == 'float'
+                        ? const TextInputType.numberWithOptions(decimal: true)
+                        : TextInputType.text),
               inputFormatters: meta['type'] == 'int'
                   ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
                   : (meta['type'] == 'float'
-                      ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))]
-                      : <TextInputFormatter>[]),
+                        ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))]
+                        : <TextInputFormatter>[]),
               decoration: InputDecoration(
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
+                fillColor: Colors.white,
+                filled: true,
                 hintText: meta['type'] == 'string' ? 'e.g. good' : 'numeric value',
               ),
               validator: (v) {
@@ -140,10 +153,12 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
           const SizedBox(height: 12),
           // Three-column layout
           Row(
+            spacing: 24,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
+                  spacing: 12,
                   children: List.generate(leftKeys.length, (index) {
                     final k = leftKeys[index];
                     return Padding(
@@ -153,9 +168,9 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
                   }),
                 ),
               ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Column(
+                  spacing: 12,
                   children: List.generate(middleKeys.length, (index) {
                     final k = middleKeys[index];
                     return Padding(
@@ -165,9 +180,9 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
                   }),
                 ),
               ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Column(
+                  spacing: 12,
                   children: List.generate(rightKeys.length, (index) {
                     final k = rightKeys[index];
                     return Padding(
@@ -182,7 +197,18 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              ElevatedButton(onPressed: () => _submit(context), child: const Text('Predict')),
+              ElevatedButton(
+                onPressed: () => _submit(context),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  backgroundColor: Colors.grey.shade200,
+                ),
+                child: Text(
+                  'Predict',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.black),
+                ),
+              ),
               const SizedBox(width: 12),
               ElevatedButton(
                 onPressed: () {
@@ -190,8 +216,15 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
                     c.clear();
                   }
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200]),
-                child: const Text('Clear', style: TextStyle(color: Colors.black)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  backgroundColor: Colors.grey.shade200,
+                ),
+                child: Text(
+                  'Clear',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.black),
+                ),
               ),
             ],
           ),

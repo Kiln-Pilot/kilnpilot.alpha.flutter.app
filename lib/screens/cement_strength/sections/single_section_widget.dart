@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../blocs/cement_strength_kpi/cement_strength_bloc.dart';
+import 'package:flutter/services.dart';
 
 class CementStrengthSingleSectionWidget extends StatelessWidget {
   final Map<String, Map<String, String>> featuresMeta;
@@ -29,6 +30,113 @@ class CementStrengthSingleSectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Prepare three columns (left, middle, right)
+    final keys = featuresMeta.keys.toList();
+    final int total = keys.length;
+    final int base = total ~/ 3;
+    final int rem = total % 3;
+    final int leftCount = base + (rem > 0 ? 1 : 0);
+    final int middleCount = base + (rem > 1 ? 1 : 0);
+    final leftKeys = keys.sublist(0, leftCount);
+    final middleKeys = keys.sublist(leftCount, leftCount + middleCount);
+    final rightKeys = keys.sublist(leftCount + middleCount, total);
+
+    Widget buildField(String k) {
+      final meta = featuresMeta[k]!;
+      // If meta provides 'options' (comma-separated), render a dropdown
+      if (meta.containsKey('options') && (meta['options'] ?? '').trim().isNotEmpty) {
+        final options = meta['options']!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(meta['label']!, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text(
+                '${meta['type']} — ${meta['desc']}',
+                style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[700]),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: controllers[k]!.text.isNotEmpty ? controllers[k]!.text : null,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  isDense: true,
+                  fillColor: Colors.white,
+                  label: Text(meta['label']!),
+                  filled: true,
+                ),
+                items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
+                onChanged: (v) => controllers[k]!.text = v ?? '',
+                dropdownColor: Colors.white,
+                validator: (v) {
+                  if (v == null || v.toString().trim().isEmpty) return 'Required';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        );
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(meta['label']!, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(
+              '${meta['type']} — ${meta['desc']}',
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[700]),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: controllers[k],
+              keyboardType: meta['type'] == 'int'
+                  ? TextInputType.number
+                  : (meta['type'] == 'float'
+                      ? const TextInputType.numberWithOptions(decimal: true)
+                      : TextInputType.text),
+              inputFormatters: meta['type'] == 'int'
+                  ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
+                  : (meta['type'] == 'float'
+                      ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))]
+                      : <TextInputFormatter>[]),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                isDense: true,
+                fillColor: Colors.white,
+                filled: true,
+                hintText: meta['type'] == 'string' ? 'e.g. Superplasticizer' : 'numeric value',
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Required';
+                if (meta['type'] == 'int') {
+                  if (int.tryParse(v.trim()) == null) return 'Enter a valid integer';
+                }
+                if (meta['type'] == 'float') {
+                  if (double.tryParse(v.trim()) == null) return 'Enter a valid number';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
     return Form(
       key: formKey,
       child: Column(
@@ -36,50 +144,78 @@ class CementStrengthSingleSectionWidget extends StatelessWidget {
         children: [
           Text('Manual input for a single sample', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
-          GridView.count(
-            crossAxisCount: MediaQuery.of(context).size.width > 1000 ? 2 : 1,
-            shrinkWrap: true,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            physics: const NeverScrollableScrollPhysics(),
-            children: featuresMeta.keys.map((k) {
-              final meta = featuresMeta[k]!;
-              return Card(
-                elevation: 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(meta['label']!, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 4),
-                      Text('${meta['type']} — ${meta['desc']}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[700])),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: controllers[k],
-                        decoration: InputDecoration(border: const OutlineInputBorder(), isDense: true, hintText: meta['type'] == 'string' ? 'e.g. Superplasticizer' : 'numeric value'),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Required';
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
+          // Three-column layout
+          Row(
+            spacing: 24,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  spacing: 12,
+                  children: List.generate(leftKeys.length, (index) {
+                    final k = leftKeys[index];
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: index == leftKeys.length - 1 ? 0 : 12),
+                      child: buildField(k),
+                    );
+                  }),
                 ),
-              );
-            }).toList(),
+              ),
+              Expanded(
+                child: Column(
+                  spacing: 12,
+                  children: List.generate(middleKeys.length, (index) {
+                    final k = middleKeys[index];
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: index == middleKeys.length - 1 ? 0 : 12),
+                      child: buildField(k),
+                    );
+                  }),
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  spacing: 12,
+                  children: List.generate(rightKeys.length, (index) {
+                    final k = rightKeys[index];
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: index == rightKeys.length - 1 ? 0 : 12),
+                      child: buildField(k),
+                    );
+                  }),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              ElevatedButton(onPressed: () => _submit(context), child: const Text('Predict')),
+              ElevatedButton(
+                onPressed: () => _submit(context),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  backgroundColor: Colors.grey.shade200,
+                ),
+                child: Text(
+                  'Predict',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.black),
+                ),
+              ),
               const SizedBox(width: 12),
               ElevatedButton(
                 onPressed: () {
                   for (final c in controllers.values) c.clear();
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200]),
-                child: const Text('Clear', style: TextStyle(color: Colors.black)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  backgroundColor: Colors.grey.shade200,
+                ),
+                child: Text(
+                  'Clear',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.black),
+                ),
               ),
             ],
           ),
@@ -88,4 +224,3 @@ class CementStrengthSingleSectionWidget extends StatelessWidget {
     );
   }
 }
-
