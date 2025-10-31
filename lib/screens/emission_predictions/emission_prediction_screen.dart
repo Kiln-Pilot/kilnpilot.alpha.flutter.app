@@ -125,9 +125,40 @@ class _EmissionPredictionScreenState extends State<EmissionPredictionScreen> {
                   current: mode,
                   values: const [0, 1, 2],
                   iconBuilder: (i) {
-                    if (i == 0) return Center(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.input, color: Colors.blue, size: 20), Text('Single', style: GoogleFonts.poppins(color: Colors.blue, fontSize: 14))]));
-                    if (i == 1) return Center(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.upload_file, color: Colors.green, size: 20), Text('Batch', style: GoogleFonts.poppins(color: Colors.green, fontSize: 14))]));
-                    return Center(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.wifi_tethering, color: Colors.deepOrange, size: 20), Text('Realtime', style: GoogleFonts.poppins(color: Colors.deepOrange, fontSize: 14))]));
+                    if (i == 0) {
+                      return Center(
+                        child: Row(
+                          spacing: 16,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.input, color: Colors.blue, size: 24),
+                            Text('Single', style: GoogleFonts.poppins(color: Colors.blue, fontSize: 18)),
+                          ],
+                        ),
+                      );
+                    }
+                    if (i == 1) {
+                      return Center(
+                        child: Row(
+                          spacing: 16,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.upload_file, color: Colors.green, size: 24),
+                            Text('Batch', style: GoogleFonts.poppins(color: Colors.green, fontSize: 18)),
+                          ],
+                        ),
+                      );
+                    }
+                    return Center(
+                      child: Row(
+                        spacing: 16,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.wifi_tethering, color: Colors.deepOrange, size: 24),
+                          Text('Realtime', style: GoogleFonts.poppins(color: Colors.deepOrange, fontSize: 18)),
+                        ],
+                      ),
+                    );
                   },
                   selectedIconScale: 1,
                   indicatorSize: const Size.fromWidth(160),

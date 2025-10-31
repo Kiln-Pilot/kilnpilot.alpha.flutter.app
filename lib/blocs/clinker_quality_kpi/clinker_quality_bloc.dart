@@ -125,8 +125,8 @@ class ClinkerQualityBloc extends Bloc<ClinkerQualityEvent, ClinkerQualityState> 
         final response = await repository.predictBatch(samples);
         final data = response.data as Map<String, dynamic>? ?? {};
         final List<dynamic> raw = data['predictions'] as List<dynamic>? ?? (response.data as List<dynamic>? ?? []);
-        final preds = raw.map((e) => ClinkerPredictionResponse.fromJson(Map<String, dynamic>.from(e as Map))).toList();
-        emit(ClinkerQualityBatchSuccess(preds));
+        final predictions = raw.map((e) => ClinkerPredictionResponse.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+        emit(ClinkerQualityBatchSuccess(predictions));
       } catch (e) {
         emit(ClinkerQualityError(e.toString()));
       }
@@ -142,7 +142,7 @@ class ClinkerQualityBloc extends Bloc<ClinkerQualityEvent, ClinkerQualityState> 
           try {
             final dynamic data = message is String ? jsonDecode(message) : message;
             if (data is Map) {
-              final Map<String, dynamic> map = Map<String, dynamic>.from(data as Map);
+              final Map<String, dynamic> map = Map<String, dynamic>.from(data);
 
               // Helper to find nested keys if backend nests the payload
               dynamic findKeyRecursive(Map<String, dynamic> m, String key) {
@@ -174,7 +174,7 @@ class ClinkerQualityBloc extends Bloc<ClinkerQualityEvent, ClinkerQualityState> 
 
               // Fallback: try to find a nested object with the metrics
               final nested = findKeyRecursive(map, 'lsf') != null ? map : findKeyRecursive(map, 'predictions') == null ? map : null;
-              if (nested != null && nested is Map<String, dynamic>) {
+              if (nested != null) {
                 try {
                   final parsed = ClinkerPredictionResponse.fromJson(nested);
                   emit(ClinkerStreamAnalysis(predictions: [parsed], raw: map));

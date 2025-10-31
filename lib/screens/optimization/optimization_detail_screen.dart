@@ -121,6 +121,7 @@ class OptimizationDetailScreen extends StatelessWidget {
                     Text('Severity Classes', style: Theme.of(context).textTheme.titleLarge),
                     ...opt.severityClasses.map(
                       (sc) => Card(
+                        color: Colors.grey.shade200,
                         margin: const EdgeInsets.symmetric(vertical: 8),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
