@@ -22,6 +22,10 @@ class _DashboardState extends State<Dashboard> {
   late Timer _timer;
   final Random _random = Random();
 
+  // sliding window configuration
+  final Duration windowDuration = const Duration(seconds: 60); // visible window
+  final int samplingSeconds = 1; // data frequency
+
   List<CementChartData> temperatureData = [];
   List<CementChartData> pressureData = [];
   List<CementChartData> productionData = [];
@@ -31,11 +35,13 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    temperatureData = List.generate(20, (i) => CementChartData(now.subtract(Duration(seconds: 20 - i)), 1200 + _random.nextDouble() * 100));
-    pressureData = List.generate(20, (i) => CementChartData(now.subtract(Duration(seconds: 20 - i)), 2.5 + _random.nextDouble()));
-    productionData = List.generate(20, (i) => CementChartData(now.subtract(Duration(seconds: 20 - i)), 200 + _random.nextDouble() * 20));
-    energyData = List.generate(20, (i) => CementChartData(now.subtract(Duration(seconds: 20 - i)), 500 + _random.nextDouble() * 50));
-    _timer = Timer.periodic(Duration(seconds: 1), (_) => _updateData());
+    // initialize with points filling the window so chart doesn't start empty
+    final int initialPoints = (windowDuration.inSeconds / samplingSeconds).round();
+    temperatureData = List.generate(initialPoints, (i) => CementChartData(now.subtract(Duration(seconds: initialPoints - i)), 1200 + _random.nextDouble() * 100));
+    pressureData = List.generate(initialPoints, (i) => CementChartData(now.subtract(Duration(seconds: initialPoints - i)), 2.5 + _random.nextDouble()));
+    productionData = List.generate(initialPoints, (i) => CementChartData(now.subtract(Duration(seconds: initialPoints - i)), 200 + _random.nextDouble() * 20));
+    energyData = List.generate(initialPoints, (i) => CementChartData(now.subtract(Duration(seconds: initialPoints - i)), 500 + _random.nextDouble() * 50));
+    _timer = Timer.periodic(Duration(seconds: samplingSeconds), (_) => _updateData());
   }
 
   void _updateData() {
@@ -45,7 +51,21 @@ class _DashboardState extends State<Dashboard> {
       pressureData.add(CementChartData(now, 2.5 + _random.nextDouble()));
       productionData.add(CementChartData(now, 200 + _random.nextDouble() * 20));
       energyData.add(CementChartData(now, 500 + _random.nextDouble() * 50));
-      // No removal of old data, so lines run indefinitely
+
+      // prune old points outside the windowDuration so charts behave like a sliding window
+      final cutoff = now.subtract(windowDuration);
+      while (temperatureData.isNotEmpty && temperatureData.first.time.isBefore(cutoff)) {
+        temperatureData.removeAt(0);
+      }
+      while (pressureData.isNotEmpty && pressureData.first.time.isBefore(cutoff)) {
+        pressureData.removeAt(0);
+      }
+      while (productionData.isNotEmpty && productionData.first.time.isBefore(cutoff)) {
+        productionData.removeAt(0);
+      }
+      while (energyData.isNotEmpty && energyData.first.time.isBefore(cutoff)) {
+        energyData.removeAt(0);
+      }
     });
   }
 
@@ -99,6 +119,15 @@ class _DashboardState extends State<Dashboard> {
         ];
         break;
     }
+
+    // compute visible range for the sliding window; fallback to null if not enough data
+    DateTime? visibleMin;
+    DateTime? visibleMax;
+    if (data.isNotEmpty) {
+      visibleMax = data.last.time;
+      visibleMin = visibleMax.subtract(windowDuration);
+    }
+
     return Container(
       margin: const EdgeInsets.all(12.0),
       padding: const EdgeInsets.all(16.0),
@@ -114,7 +143,11 @@ class _DashboardState extends State<Dashboard> {
           SizedBox(
             height: 200,
             child: SfCartesianChart(
-              primaryXAxis: DateTimeAxis(intervalType: DateTimeIntervalType.seconds),
+              primaryXAxis: DateTimeAxis(
+                intervalType: DateTimeIntervalType.seconds,
+                minimum: visibleMin,
+                maximum: visibleMax,
+              ),
               primaryYAxis: NumericAxis(title: AxisTitle(text: yLabel)),
               series: series,
             ),
@@ -138,7 +171,7 @@ class _DashboardState extends State<Dashboard> {
         child: GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           childAspectRatio: 3,
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
