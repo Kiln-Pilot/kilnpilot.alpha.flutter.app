@@ -11,7 +11,7 @@ import '../../../blocs/cement_strength_kpi/cement_strength_bloc.dart';
 import '../../../repositories/cement_strength_kpi/serializers/cement_prediction_response.dart';
 
 class CementChartPoint {
-  final double x;
+  final DateTime x;
   final double y;
   CementChartPoint(this.x, this.y);
 }
@@ -26,7 +26,9 @@ class CementStrengthRealtimeSectionWidget extends StatefulWidget {
 class _CementStrengthRealtimeSectionWidgetState extends State<CementStrengthRealtimeSectionWidget> {
   Timer? _realtimeTimer;
   final List<CementChartPoint> _strengthSeries = [];
-  int _tick = 0;
+  // sliding window configuration (seconds)
+  final Duration _windowDuration = const Duration(seconds: 60);
+  ChartSeriesController? _strengthController;
   final Random _rnd = Random();
 
   Map<String, dynamic>? _lastSentFeatures;
@@ -35,10 +37,19 @@ class _CementStrengthRealtimeSectionWidgetState extends State<CementStrengthReal
 
   void _startRealtime() {
     _strengthSeries.clear();
-    _tick = 0;
     _lastSentFeatures = null;
     _lastResponseRaw = null;
     _lastPrediction = null;
+
+    // prefill the series across the visible window so chart doesn't collapse
+    final now = DateTime.now();
+    final int initialPoints = _windowDuration.inSeconds;
+    double defaultStrength = 40.0;
+    if (_lastPrediction != null) defaultStrength = _lastPrediction!.cementStrengthMpa;
+    for (int i = 0; i < initialPoints; i++) {
+      final ts = now.subtract(Duration(seconds: initialPoints - i));
+      _strengthSeries.add(CementChartPoint(ts, defaultStrength));
+    }
 
     // start backend websocket stream
     final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -115,6 +126,9 @@ class _CementStrengthRealtimeSectionWidgetState extends State<CementStrengthReal
   Widget build(BuildContext context) {
     final minY = _axisMin(_strengthSeries, 0);
     final maxY = _axisMax(_strengthSeries, 100); // default strength range
+    final DateTime now = DateTime.now();
+    final DateTime visibleMax = now;
+    final DateTime visibleMin = visibleMax.subtract(_windowDuration);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,21 +156,34 @@ class _CementStrengthRealtimeSectionWidgetState extends State<CementStrengthReal
         ]),
         const SizedBox(height: 12),
 
-        SizedBox(
-          height: 160,
-          child: SfCartesianChart(
-            title: ChartTitle(text: 'Cement strength (MPa)'),
-            primaryXAxis: NumericAxis(isVisible: false),
-            primaryYAxis: NumericAxis(minimum: minY, maximum: maxY),
-            series: <CartesianSeries<CementChartPoint, double>>[
-              LineSeries<CementChartPoint, double>(
-                dataSource: _strengthSeries,
-                xValueMapper: (p, _) => p.x,
-                yValueMapper: (p, _) => p.y,
-                color: Colors.teal,
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Cement strength (MPa)', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 200,
+              child: SfCartesianChart(
+                primaryXAxis: DateTimeAxis(
+                  intervalType: DateTimeIntervalType.seconds,
+                  minimum: visibleMin,
+                  maximum: visibleMax,
+                ),
+                primaryYAxis: NumericAxis(minimum: minY, maximum: maxY),
+                series: <CartesianSeries<CementChartPoint, DateTime>>[
+                  LineSeries<CementChartPoint, DateTime>(
+                    onRendererCreated: (ChartSeriesController controller) => _strengthController = controller,
+                    dataSource: _strengthSeries,
+                    xValueMapper: (p, _) => p.x,
+                    yValueMapper: (p, _) => p.y,
+                    color: Colors.teal,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ]),
         ),
         const SizedBox(height: 12),
 
@@ -215,9 +242,17 @@ class _CementStrengthRealtimeSectionWidgetState extends State<CementStrengthReal
                 _lastResponseRaw = state.raw;
                 if (latest != null) {
                   _lastPrediction = latest;
-                  _strengthSeries.add(CementChartPoint(_tick.toDouble(), latest.cementStrengthMpa));
-                  if (_strengthSeries.length > 60) _strengthSeries.removeAt(0);
-                  _tick++;
+                  final pointTime = DateTime.now();
+                  _strengthSeries.add(CementChartPoint(pointTime, latest.cementStrengthMpa));
+                  int removed = 0;
+                  final cutoff = pointTime.subtract(_windowDuration);
+                  while (_strengthSeries.isNotEmpty && _strengthSeries.first.x.isBefore(cutoff)) {
+                    _strengthSeries.removeAt(0);
+                    removed++;
+                  }
+                  if (_strengthController != null && removed <= 1) {
+                    _strengthController!.updateDataSource(addedDataIndex: _strengthSeries.length - 1, removedDataIndex: removed > 0 ? 0 : -1);
+                  } // else full rebuild via setState
                 }
               });
             }

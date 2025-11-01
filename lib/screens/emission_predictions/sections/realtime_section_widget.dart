@@ -26,7 +26,10 @@ class _EmissionPredictionRealtimeSectionWidgetState extends State<EmissionPredic
   Timer? _timer;
   final List<EmissionChartPoint> _co2Series = [];
   final List<EmissionChartPoint> _noxSeries = [];
-  int _tick = 0;
+  // sliding window
+  final Duration _windowDuration = const Duration(seconds: 60);
+  ChartSeriesController? _co2Controller;
+  ChartSeriesController? _noxController;
   final Random _rnd = Random();
 
   Map<String, dynamic>? _lastSentFeatures;
@@ -37,10 +40,24 @@ class _EmissionPredictionRealtimeSectionWidgetState extends State<EmissionPredic
     // reset series and state
     _co2Series.clear();
     _noxSeries.clear();
-    _tick = 0;
     _lastSentFeatures = null;
     _lastResponseRaw = null;
     _lastPrediction = null;
+
+    // prefill series across window so chart stays visible
+    final now = DateTime.now();
+    final int initialPoints = _windowDuration.inSeconds;
+    double defaultCo2 = 10.0;
+    double defaultNox = 100.0;
+    if (_lastPrediction != null) {
+      defaultCo2 = _lastPrediction!.co2EmissionsTph;
+      defaultNox = _lastPrediction!.noxPpm;
+    }
+    for (int i = 0; i < initialPoints; i++) {
+      final ts = now.subtract(Duration(seconds: initialPoints - i));
+      _co2Series.add(EmissionChartPoint(ts, defaultCo2));
+      _noxSeries.add(EmissionChartPoint(ts, defaultNox));
+    }
 
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -143,38 +160,65 @@ class _EmissionPredictionRealtimeSectionWidgetState extends State<EmissionPredic
       const SizedBox(height: 12),
 
       // separate charts for each returned attribute
-      SizedBox(
-        height: 120,
-        child: SfCartesianChart(
-          title: ChartTitle(text: 'CO2 emissions (tph)'),
-          primaryXAxis: NumericAxis(isVisible: false),
-          primaryYAxis: NumericAxis(minimum: co2Min, maximum: co2Max),
-          series: <CartesianSeries<EmissionChartPoint, double>>[
-            LineSeries<EmissionChartPoint, double>(
-              dataSource: _co2Series,
-              xValueMapper: (p, _) => p.x,
-              yValueMapper: (p, _) => p.y,
-              color: Colors.blue,
+      Container(
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.all(12.0),
+        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('CO2 emissions (tph)', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 200,
+            child: SfCartesianChart(
+              primaryXAxis: DateTimeAxis(
+                intervalType: DateTimeIntervalType.seconds,
+                minimum: DateTime.now().subtract(_windowDuration),
+                maximum: DateTime.now(),
+                isVisible: false,
+              ),
+              primaryYAxis: NumericAxis(minimum: co2Min, maximum: co2Max),
+              series: <CartesianSeries<EmissionChartPoint, DateTime>>[
+                LineSeries<EmissionChartPoint, DateTime>(
+                  onRendererCreated: (ChartSeriesController controller) => _co2Controller = controller,
+                  dataSource: _co2Series,
+                  xValueMapper: (p, _) => p.x,
+                  yValueMapper: (p, _) => p.y,
+                  color: Colors.blue,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
-      const SizedBox(height: 8),
-      SizedBox(
-        height: 120,
-        child: SfCartesianChart(
-          title: ChartTitle(text: 'NOx (ppm)'),
-          primaryXAxis: NumericAxis(isVisible: false),
-          primaryYAxis: NumericAxis(minimum: noxMin, maximum: noxMax),
-          series: <CartesianSeries<EmissionChartPoint, double>>[
-            LineSeries<EmissionChartPoint, double>(
-              dataSource: _noxSeries,
-              xValueMapper: (p, _) => p.x,
-              yValueMapper: (p, _) => p.y,
-              color: Colors.red,
+      Container(
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.all(12.0),
+        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('NOx (ppm)', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 200,
+            child: SfCartesianChart(
+              primaryXAxis: DateTimeAxis(
+                intervalType: DateTimeIntervalType.seconds,
+                minimum: DateTime.now().subtract(_windowDuration),
+                maximum: DateTime.now(),
+                isVisible: false,
+              ),
+              primaryYAxis: NumericAxis(minimum: noxMin, maximum: noxMax),
+              series: <CartesianSeries<EmissionChartPoint, DateTime>>[
+                LineSeries<EmissionChartPoint, DateTime>(
+                  onRendererCreated: (ChartSeriesController controller) => _noxController = controller,
+                  dataSource: _noxSeries,
+                  xValueMapper: (p, _) => p.x,
+                  yValueMapper: (p, _) => p.y,
+                  color: Colors.red,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
       const SizedBox(height: 12),
 
@@ -182,6 +226,7 @@ class _EmissionPredictionRealtimeSectionWidgetState extends State<EmissionPredic
       Row(children: [
         Expanded(
           child: Card(
+            color: Colors.grey.shade50,
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -203,6 +248,7 @@ class _EmissionPredictionRealtimeSectionWidgetState extends State<EmissionPredic
         const SizedBox(width: 12),
         Expanded(
           child: Card(
+            color: Colors.grey.shade50,
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -235,13 +281,27 @@ class _EmissionPredictionRealtimeSectionWidgetState extends State<EmissionPredic
               _lastResponseRaw = state.raw;
               if (latest != null) {
                 _lastPrediction = latest;
-                _co2Series.add(EmissionChartPoint(_tick.toDouble(), latest.co2EmissionsTph));
-                _noxSeries.add(EmissionChartPoint(_tick.toDouble(), latest.noxPpm));
+                final pointTime = DateTime.now();
+                _co2Series.add(EmissionChartPoint(pointTime, latest.co2EmissionsTph));
+                _noxSeries.add(EmissionChartPoint(pointTime, latest.noxPpm));
 
-                if (_co2Series.length > 60) _co2Series.removeAt(0);
-                if (_noxSeries.length > 60) _noxSeries.removeAt(0);
-
-                _tick++;
+                int removedCo2 = 0;
+                int removedNox = 0;
+                final cutoff = pointTime.subtract(_windowDuration);
+                while (_co2Series.isNotEmpty && _co2Series.first.x.isBefore(cutoff)) {
+                  _co2Series.removeAt(0);
+                  removedCo2++;
+                }
+                while (_noxSeries.isNotEmpty && _noxSeries.first.x.isBefore(cutoff)) {
+                  _noxSeries.removeAt(0);
+                  removedNox++;
+                }
+                if (_co2Controller != null && removedCo2 <= 1) {
+                  _co2Controller!.updateDataSource(addedDataIndex: _co2Series.length - 1, removedDataIndex: removedCo2 > 0 ? 0 : -1);
+                }
+                if (_noxController != null && removedNox <= 1) {
+                  _noxController!.updateDataSource(addedDataIndex: _noxSeries.length - 1, removedDataIndex: removedNox > 0 ? 0 : -1);
+                }
               }
             });
           }

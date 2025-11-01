@@ -21,8 +21,13 @@ class _ClinkerQualityRealtimeSectionWidgetState extends State<ClinkerQualityReal
   final List<ClinkerChartPoint> _lsfSeries = [];
   final List<ClinkerChartPoint> _silicaSeries = [];
   final List<ClinkerChartPoint> _freeLimeSeries = [];
-  int _plotTick = 0; // tick used for plotting incoming predictions
+  // chart controllers for incremental updates (prevents redraw lag)
+  ChartSeriesController? _lsfController;
+  ChartSeriesController? _silicaController;
+  ChartSeriesController? _freeLimeController;
   final Random _rnd = Random();
+  // sliding window configuration (match dashboard behavior)
+  final Duration _windowDuration = const Duration(seconds: 60);
 
   Map<String, dynamic>? _lastSentFeatures;
   Map<String, dynamic>? _lastResponseRaw;
@@ -32,7 +37,6 @@ class _ClinkerQualityRealtimeSectionWidgetState extends State<ClinkerQualityReal
     _lsfSeries.clear();
     _silicaSeries.clear();
     _freeLimeSeries.clear();
-    _plotTick = 0;
     _lastSentFeatures = null;
     _lastResponseRaw = null;
     _lastPrediction = null;
@@ -159,6 +163,12 @@ class _ClinkerQualityRealtimeSectionWidgetState extends State<ClinkerQualityReal
     final freeMin = _axisMin(_freeLimeSeries, 0);
     final freeMax = _axisMax(_freeLimeSeries, 10);
 
+    // compute visible time window (sliding window similar to dashboard)
+    // anchor window to 'now' so the chart always shows a fixed time span
+    final DateTime now = DateTime.now();
+    final DateTime visibleMax = now;
+    final DateTime visibleMin = visibleMax.subtract(_windowDuration);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -195,53 +205,113 @@ class _ClinkerQualityRealtimeSectionWidgetState extends State<ClinkerQualityReal
         ),
         const SizedBox(height: 12),
 
-        // charts: separate chart for each returned attribute
-        SizedBox(
-          height: 120,
-          child: SfCartesianChart(
-            title: ChartTitle(text: 'LSF'),
-            primaryXAxis: NumericAxis(isVisible: false),
-            primaryYAxis: NumericAxis(minimum: lsfMin, maximum: lsfMax),
-            series: <CartesianSeries<ClinkerChartPoint, double>>[
-              LineSeries<ClinkerChartPoint, double>(
-                dataSource: _lsfSeries,
-                xValueMapper: (p, _) => p.x,
-                yValueMapper: (p, _) => p.y,
-                color: Colors.blue,
+        // charts: separate chart for each returned attribute. Use DateTimeAxis and windowing like dashboard.
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('LSF', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 200,
+                child: SfCartesianChart(
+                  primaryXAxis: DateTimeAxis(
+                    intervalType: DateTimeIntervalType.seconds,
+                    minimum: visibleMin,
+                    maximum: visibleMax,
+                    isVisible: false,
+                  ),
+                  primaryYAxis: NumericAxis(minimum: lsfMin, maximum: lsfMax),
+                  series: <CartesianSeries<ClinkerChartPoint, DateTime>>[
+                    LineSeries<ClinkerChartPoint, DateTime>(
+                      onRendererCreated: (ChartSeriesController controller) => _lsfController = controller,
+                      dataSource: _lsfSeries,
+                      xValueMapper: (p, _) => p.x,
+                      yValueMapper: (p, _) => p.y,
+                      color: Colors.blue,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          height: 120,
-          child: SfCartesianChart(
-            title: ChartTitle(text: 'Silica modulus'),
-            primaryXAxis: NumericAxis(isVisible: false),
-            primaryYAxis: NumericAxis(minimum: silicaMin, maximum: silicaMax),
-            series: <CartesianSeries<ClinkerChartPoint, double>>[
-              LineSeries<ClinkerChartPoint, double>(
-                dataSource: _silicaSeries,
-                xValueMapper: (p, _) => p.x,
-                yValueMapper: (p, _) => p.y,
-                color: Colors.green,
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Silica modulus', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 200,
+                child: SfCartesianChart(
+                  primaryXAxis: DateTimeAxis(
+                    intervalType: DateTimeIntervalType.seconds,
+                    minimum: visibleMin,
+                    maximum: visibleMax,
+                    isVisible: false,
+                  ),
+                  primaryYAxis: NumericAxis(minimum: silicaMin, maximum: silicaMax),
+                  series: <CartesianSeries<ClinkerChartPoint, DateTime>>[
+                    LineSeries<ClinkerChartPoint, DateTime>(
+                      onRendererCreated: (ChartSeriesController controller) => _silicaController = controller,
+                      dataSource: _silicaSeries,
+                      xValueMapper: (p, _) => p.x,
+                      yValueMapper: (p, _) => p.y,
+                      color: Colors.green,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          height: 120,
-          child: SfCartesianChart(
-            title: ChartTitle(text: 'Free lime (%)'),
-            primaryXAxis: NumericAxis(isVisible: false),
-            primaryYAxis: NumericAxis(minimum: freeMin, maximum: freeMax),
-            series: <CartesianSeries<ClinkerChartPoint, double>>[
-              LineSeries<ClinkerChartPoint, double>(
-                dataSource: _freeLimeSeries,
-                xValueMapper: (p, _) => p.x,
-                yValueMapper: (p, _) => p.y,
-                color: Colors.orange,
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Free lime (%)', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 200,
+                child: SfCartesianChart(
+                  primaryXAxis: DateTimeAxis(
+                    intervalType: DateTimeIntervalType.seconds,
+                    minimum: visibleMin,
+                    maximum: visibleMax,
+                    isVisible: false,
+                  ),
+                  primaryYAxis: NumericAxis(minimum: freeMin, maximum: freeMax),
+                  series: <CartesianSeries<ClinkerChartPoint, DateTime>>[
+                    LineSeries<ClinkerChartPoint, DateTime>(
+                      onRendererCreated: (ChartSeriesController controller) => _freeLimeController = controller,
+                      dataSource: _freeLimeSeries,
+                      xValueMapper: (p, _) => p.x,
+                      yValueMapper: (p, _) => p.y,
+                      color: Colors.orange,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -316,20 +386,48 @@ class _ClinkerQualityRealtimeSectionWidgetState extends State<ClinkerQualityReal
                 _lastResponseRaw = state.raw;
                 if (latest != null) {
                   _lastPrediction = latest;
-                  _lsfSeries.add(ClinkerChartPoint(_plotTick.toDouble(), latest.lsf));
-                  _silicaSeries.add(ClinkerChartPoint(_plotTick.toDouble(), latest.silicaModulus));
-                  _freeLimeSeries.add(ClinkerChartPoint(_plotTick.toDouble(), latest.freeLimePct));
-                  // keep series lengths bounded
-                  if (_lsfSeries.length > 60) {
+                  final pointTime = DateTime.now();
+                  // append new points
+                  _lsfSeries.add(ClinkerChartPoint(pointTime, latest.lsf));
+                  _silicaSeries.add(ClinkerChartPoint(pointTime, latest.silicaModulus));
+                  _freeLimeSeries.add(ClinkerChartPoint(pointTime, latest.freeLimePct));
+
+                  // prune old points outside the visible time window and count removals
+                  final cutoff = pointTime.subtract(_windowDuration);
+                  int removedLsf = 0;
+                  while (_lsfSeries.isNotEmpty && _lsfSeries.first.x.isBefore(cutoff)) {
                     _lsfSeries.removeAt(0);
+                    removedLsf++;
                   }
-                  if (_silicaSeries.length > 60) {
+                  int removedSilica = 0;
+                  while (_silicaSeries.isNotEmpty && _silicaSeries.first.x.isBefore(cutoff)) {
                     _silicaSeries.removeAt(0);
+                    removedSilica++;
                   }
-                  if (_freeLimeSeries.length > 60) {
+                  int removedFree = 0;
+                  while (_freeLimeSeries.isNotEmpty && _freeLimeSeries.first.x.isBefore(cutoff)) {
                     _freeLimeSeries.removeAt(0);
+                    removedFree++;
                   }
-                  _plotTick++;
+
+                  // If only a single removal per series (typical for streaming) use incremental update for immediate redraw.
+                  // If many points were pruned (rare), fall back to full rebuild via setState to keep things simple.
+                  final bool needFullRebuild = removedLsf > 1 || removedSilica > 1 || removedFree > 1;
+                  if (!needFullRebuild) {
+                    // update each series controller if available
+                    if (_lsfController != null) {
+                      _lsfController!.updateDataSource(addedDataIndex: _lsfSeries.length - 1, removedDataIndex: removedLsf > 0 ? 0 : -1);
+                    }
+                    if (_silicaController != null) {
+                      _silicaController!.updateDataSource(addedDataIndex: _silicaSeries.length - 1, removedDataIndex: removedSilica > 0 ? 0 : -1);
+                    }
+                    if (_freeLimeController != null) {
+                      _freeLimeController!.updateDataSource(addedDataIndex: _freeLimeSeries.length - 1, removedDataIndex: removedFree > 0 ? 0 : -1);
+                    }
+                  } else {
+                    // rare: many points removed (e.g., large time gap) - rebuild so axes and data align correctly
+                    // setState already wrapping this block will rebuild the chart.
+                  }
                 }
               });
              }

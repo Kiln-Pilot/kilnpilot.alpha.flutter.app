@@ -1,6 +1,6 @@
 // Simple chart point model for emission realtime charts
 class EmissionChartPoint {
-  final double x;
+  final DateTime x;
   final double y;
   const EmissionChartPoint(this.x, this.y);
 }

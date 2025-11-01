@@ -15,6 +15,7 @@ class ResultAreaWidget extends StatelessWidget {
     if (s is EmissionPredictionSingleSuccess) {
       final EmissionPredictionResponse r = s.prediction;
       return Card(
+        color: Colors.grey.shade50,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -30,6 +31,7 @@ class ResultAreaWidget extends StatelessWidget {
 
     if (s is EmissionPredictionBatchSuccess) {
       return Card(
+        color: Colors.grey.shade50,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -57,6 +59,7 @@ class ResultAreaWidget extends StatelessWidget {
       final latest = s.predictions.isNotEmpty ? s.predictions.last : null;
       if (latest == null) return const SizedBox.shrink();
       return Card(
+        color: Colors.grey.shade50,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
