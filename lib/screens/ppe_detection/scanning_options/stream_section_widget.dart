@@ -175,7 +175,7 @@ class _PpeStreamSectionWidgetState extends State<PpeStreamSectionWidget> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.memory(
-                            base64Decode(analysis.annotatedImageBase64!),
+                            annotatedImageToBytes(analysis.annotatedImageBase64!),
                             fit: BoxFit.contain,
                             height: 180,
                           ),
@@ -199,3 +199,10 @@ class _PpeStreamSectionWidgetState extends State<PpeStreamSectionWidget> {
     );
   }
 }
+
+
+Uint8List annotatedImageToBytes(String uri) {
+  final s = uri.split(',').last;
+  return base64Decode(s);
+}
+

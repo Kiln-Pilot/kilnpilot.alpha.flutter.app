@@ -95,15 +95,8 @@ class PpeWebSocketAnalysisResponse {
   });
 
   factory PpeWebSocketAnalysisResponse.fromJson(Map<String, dynamic> json) {
-    // Accept both 'annotated_image' and 'annotated_image_base64' keys and also
-    // top-level 'analysis' nested keys that may contain annotated image.
     String? annotated;
-    if (json.containsKey('annotated_image')) annotated = json['annotated_image'] as String?;
-    if (annotated == null && json.containsKey('annotated_image_base64')) annotated = json['annotated_image_base64'] as String?;
-    if (annotated == null && json['analysis'] is Map) {
-      final a = Map<String, dynamic>.from(json['analysis']);
-      annotated = a['annotated_image'] as String? ?? a['annotated_image_base64'] as String?;
-    }
+    if (json.containsKey('annotated_image_base64')) annotated = json['annotated_image_base64'] as String?;
 
     return PpeWebSocketAnalysisResponse(
       messageType: json['message_type'] as String? ?? json['type'] as String? ?? 'analysis',
@@ -121,18 +114,4 @@ class PpeWebSocketAnalysisResponse {
         if (analysis != null) 'analysis': analysis,
         if (annotatedImageBase64 != null) 'annotated_image': annotatedImageBase64,
       };
-
-  /// Helper to return decoded bytes if annotatedImageBase64 is present.
-  /// Handles both data URIs (data:image/png;base64,...) and raw base64 strings.
-  Uint8List? annotatedImageBytes() {
-    if (annotatedImageBase64 == null || annotatedImageBase64!.isEmpty) return null;
-    final s = annotatedImageBase64!;
-    try {
-      final idx = s.indexOf(',');
-      final payload = idx != -1 ? s.substring(idx + 1) : s;
-      return base64Decode(payload);
-    } catch (_) {
-      return null;
-    }
-  }
 }

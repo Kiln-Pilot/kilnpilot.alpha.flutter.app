@@ -330,7 +330,7 @@ class _PpeDetectionScreenState extends State<PpeDetectionScreen> with WidgetsBin
                                       ],
                                     ),
                                   ),
-                                if (data.annotatedImageBase64 != null && data.annotatedImageBase64!.isNotEmpty)
+                                if (data.annotatedImageBase64!=null)
                                   Expanded(
                                     child: Column(
                                       children: [
@@ -342,7 +342,7 @@ class _PpeDetectionScreenState extends State<PpeDetectionScreen> with WidgetsBin
                                         ClipRRect(
                                           borderRadius: BorderRadius.circular(12),
                                           child: Image.memory(
-                                            base64Decode(data.annotatedImageBase64!.contains(',') ? data.annotatedImageBase64!.split(',').last : data.annotatedImageBase64!),
+                                            base64Decode(data.annotatedImageBase64!),
                                             fit: BoxFit.contain,
                                             height: 300,
                                           ),
