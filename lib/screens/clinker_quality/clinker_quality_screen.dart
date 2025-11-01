@@ -146,9 +146,9 @@ class _ClinkerQualityScreenState extends State<ClinkerQualityScreen> {
               ),
             ]),
             const SizedBox(height: 24),
-            if (mode == 0) SingleSectionWidget(featuresMeta: featuresMeta, controllers: _controllers, formKey: _formKey),
-            if (mode == 1) BatchSectionWidget(selectedFile: selectedFile, onPick: _pickBatchFile),
-            if (mode == 2) const RealtimeSectionWidget(),
+            if (mode == 0) ClinkerQualitySingleSectionWidget(featuresMeta: featuresMeta, controllers: _controllers, formKey: _formKey),
+            if (mode == 1) ClinkerQualityBatchSectionWidget(selectedFile: selectedFile, onPick: _pickBatchFile),
+            if (mode == 2) const ClinkerQualityRealtimeSectionWidget(),
             const SizedBox(height: 18),
             BlocConsumer<ClinkerQualityBloc, ClinkerQualityState>(
               listener: (context, state) {},

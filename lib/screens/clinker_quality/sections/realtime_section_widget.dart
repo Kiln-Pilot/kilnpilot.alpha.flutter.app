@@ -5,14 +5,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../chart_point.dart';
 
-class RealtimeSectionWidget extends StatefulWidget {
-  const RealtimeSectionWidget({super.key});
+class ClinkerQualityRealtimeSectionWidget extends StatefulWidget {
+  const ClinkerQualityRealtimeSectionWidget({super.key});
 
   @override
-  State<RealtimeSectionWidget> createState() => _RealtimeSectionWidgetState();
+  State<ClinkerQualityRealtimeSectionWidget> createState() => _ClinkerQualityRealtimeSectionWidgetState();
 }
 
-class _RealtimeSectionWidgetState extends State<RealtimeSectionWidget> {
+class _ClinkerQualityRealtimeSectionWidgetState extends State<ClinkerQualityRealtimeSectionWidget> {
   Timer? _realtimeTimer;
   final List<ClinkerChartPoint> _lsfSeries = [];
   final List<ClinkerChartPoint> _silicaSeries = [];

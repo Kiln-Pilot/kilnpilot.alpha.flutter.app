@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../blocs/clinker_quality_kpi/clinker_quality_bloc.dart';
+import '../../../blocs/emission_prediction_kpi/emission_prediction_bloc.dart';
 
-class ClinkerQualitySingleSectionWidget extends StatelessWidget {
+class EmissionPredictionSingleSectionWidget extends StatelessWidget {
   final Map<String, Map<String, String>> featuresMeta;
   final Map<String, TextEditingController> controllers;
   final GlobalKey<FormState> formKey;
+  final Map<String, dynamic> Function()? extraFieldsGetter;
 
-  const ClinkerQualitySingleSectionWidget({super.key, required this.featuresMeta, required this.controllers, required this.formKey});
+  const EmissionPredictionSingleSectionWidget({super.key, required this.featuresMeta, required this.controllers, required this.formKey, this.extraFieldsGetter});
 
   void _submit(BuildContext context) {
     if (!formKey.currentState!.validate()) return;
@@ -21,7 +22,9 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
         payload[k] = val.isEmpty ? null : double.tryParse(val) ?? val;
       }
     }
-    context.read<ClinkerQualityBloc>().add(PredictSingleEvent(payload));
+    final extra = extraFieldsGetter?.call();
+    if (extra != null) payload.addAll(extra);
+    context.read<EmissionPredictionBloc>().add(PredictEmissionSingleEvent(payload));
   }
 
   @override
@@ -54,7 +57,7 @@ class ClinkerQualitySingleSectionWidget extends StatelessWidget {
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: controllers[k],
-                        decoration: InputDecoration(border: const OutlineInputBorder(), isDense: true, hintText: meta['type'] == 'string' ? 'e.g. good' : 'numeric value'),
+                        decoration: InputDecoration(border: const OutlineInputBorder(), isDense: true, hintText: meta['type'] == 'string' ? 'e.g. biomass' : 'numeric value'),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Required';
                           return null;

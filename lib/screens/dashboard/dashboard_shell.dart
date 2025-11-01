@@ -31,8 +31,10 @@ class _DashboardShellState extends State<DashboardShell> {
     {"type": "section", "label": "KPIs"},
     {"type": "item", "label": "Kiln Temperature", "icon": Icons.thermostat, "route": "/dashboard/kiln-temperature"},
     {"type": "item", "label": "Conveyor Belt Damage", "icon": Icons.dangerous, "route": "/dashboard/conveyor-belt-damage"},
-    // ppe detection
     {"type": "item", "label": "PPE Detection", "icon": Icons.security, "route": "/dashboard/ppe-detection"},
+    {"type": "item", "label": "Rock Size Detection", "icon": Icons.image, "route": "/dashboard/rock-size"},
+    {"type": "item", "label": "Clinker Quality", "icon": Icons.thermostat, "route": "/dashboard/clinker-quality"},
+    {"type": "item", "label": "Emission Prediction", "icon": Icons.thermostat, "route": "/dashboard/emission-prediction"},
 
   ];
 
