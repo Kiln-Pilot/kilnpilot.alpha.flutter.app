@@ -37,6 +37,14 @@ class ChatbotSessionBloc extends Bloc<ChatbotSessionEvent, ChatbotSessionState> 
         emit(ChatbotSessionError(e.toString()));
       }
     });
+    on<ChatbotDeleteSessionEvent>((event, emit) async {
+      emit(ChatbotSessionLoading());
+      try {
+        await repository.deleteUserSession(userId: event.userId, sessionId: event.sessionId);
+        emit(ChatbotDeleteSessionSuccess(event.sessionId));
+      } catch (e) {
+        emit(ChatbotSessionError(e.toString()));
+      }
+    });
   }
 }
-

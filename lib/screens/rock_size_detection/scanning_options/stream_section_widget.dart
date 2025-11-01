@@ -108,7 +108,7 @@ class _RockStreamSectionWidgetState extends State<RockStreamSectionWidget> {
                   Text('Live Analysis Result:', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   if (analysis.annotatedImageBase64 != null && analysis.annotatedImageBase64!.isNotEmpty)
-                    ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(base64Decode(analysis.annotatedImageBase64!), fit: BoxFit.contain, height: 180)),
+                    ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(annotatedImageToBytes(analysis.annotatedImageBase64!), fit: BoxFit.contain, height: 180)),
                   const SizedBox(height: 8),
                   Text('Status: ${analysis.status}', style: GoogleFonts.poppins(fontSize: 16)),
                   if (analysis.predictions != null) ...[
@@ -125,5 +125,10 @@ class _RockStreamSectionWidgetState extends State<RockStreamSectionWidget> {
       ),
     );
   }
+}
+
+Uint8List annotatedImageToBytes(String uri) {
+  final s = uri.split(',').last;
+  return base64Decode(s);
 }
 

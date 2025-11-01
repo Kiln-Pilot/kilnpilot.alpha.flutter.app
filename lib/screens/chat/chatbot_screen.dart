@@ -21,6 +21,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final List<Map<String, String>> _messages = [];
   List<SessionInfo> _userSessions = [];
   bool _initialSessionFetched = false;
+  // Added: track whether the session selector dialog is currently open
+  bool _isSessionDialogOpen = false;
+  // When true, after sessions are refreshed we should re-open the selector dialog
+  bool _shouldReopenSessionDialogAfterRefresh = false;
 
   Future<void> _confirmAndCreateSession() async {
     final confirmed = await showDialog<bool>(
@@ -72,6 +76,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   Future<void> _showSessionSelectorDialog() async {
+    _isSessionDialogOpen = true;
+    // Capture the ChatbotSessionBloc and the scaffold messenger from the parent context
+    final ChatbotSessionBloc sessionBloc = context.read<ChatbotSessionBloc>();
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     final selected = await showDialog<SessionInfo>(
       context: context,
       barrierDismissible: false,
@@ -114,6 +122,49 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           title: Text('Chat Session ID: ${session.sessionId}'),
                           subtitle: Text('Created: $formattedDate'),
+                          // Added: delete button in front (trailing) of each session
+                          trailing: SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: FilledButton(
+                              onPressed: () async {
+                                // Confirm deletion
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Delete Session', style: GoogleFonts.poppins()),
+                                    content: Text('Delete session ${session.sessionId}?', style: GoogleFonts.poppins()),
+                                    actions: [
+                                      FilledButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: Text('Cancel', style: GoogleFonts.poppins()),
+                                      ),
+                                      FilledButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                        child: Text('Delete', style: GoogleFonts.poppins()),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true) {
+                                  if (_userId != null) {
+                                    // Use the captured bloc and messenger to avoid lookup on the dialog's context
+                                    sessionBloc.add(ChatbotDeleteSessionEvent(userId: _userId!, sessionId: session.sessionId));
+                                    messenger.showSnackBar(SnackBar(content: Text('Deleting session ${session.sessionId}...')));
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey.shade200,
+                                foregroundColor: Colors.black,
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                            ),
+                          ),
                           onTap: () => Navigator.of(context).pop(session),
                         );
                       }),
@@ -160,6 +211,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         );
       },
     );
+    _isSessionDialogOpen = false;
     if (selected != null) {
       _onSessionSelected(selected);
     }
@@ -196,6 +248,20 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _confirmAndCreateSession();
   }
 
+  // Retry opening the session selector until the previous dialog is closed.
+  // Attempts limited to avoid infinite loops.
+  void _retryReopenSessionDialog({int attempts = 6, int delayMs = 150}) {
+    if (attempts <= 0) return;
+    Future.delayed(Duration(milliseconds: delayMs), () {
+      if (!mounted) return;
+      if (!_isSessionDialogOpen) {
+        _showSessionSelectorDialog();
+      } else {
+        _retryReopenSessionDialog(attempts: attempts - 1, delayMs: delayMs);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -224,9 +290,30 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 }
               });
             } else if (state is ChatbotUserSessionsSuccess) {
+              // Regular refresh of user sessions. Update list and, if requested, reopen selector dialog.
               setState(() {
                 _userSessions = state.response.sessions;
               });
+              if (_shouldReopenSessionDialogAfterRefresh) {
+                _shouldReopenSessionDialogAfterRefresh = false;
+                // Retry reopening the dialog a few times until the previous dialog is closed
+                _retryReopenSessionDialog(attempts: 6, delayMs: 150);
+              }
+            } else if (state is ChatbotDeleteSessionSuccess) {
+              // On successful deletion: refresh sessions and close the session selector dialog if open
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Session ${state.sessionId} deleted')));
+              // Refresh the sessions list
+              if (_userId != null) {
+                // Mark that we want to re-open the selector after sessions refresh
+                _shouldReopenSessionDialogAfterRefresh = true;
+                context.read<ChatbotSessionBloc>().add(ChatbotGetUserSessionsEvent(_userId!));
+              }
+              // Close the dialog if it is open
+              if (_isSessionDialogOpen) {
+                Navigator.of(context, rootNavigator: true).pop();
+                _isSessionDialogOpen = false;
+                // The dialog will be re-opened once the refreshed sessions arrive (see handler above)
+              }
             }
           },
         ),

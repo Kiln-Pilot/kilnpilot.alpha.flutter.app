@@ -90,4 +90,14 @@ class ChatbotRepository {
       rethrow;
     }
   }
+
+  Future<Response> deleteUserSession({required String userId, required String sessionId}) async {
+    try {
+      final response = await _client.delete('/chat/user/$dummyUserId/session/$sessionId');
+      return response;
+    } catch (e, st) {
+      _logger.e('Error deleting user session', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
 }

@@ -19,3 +19,8 @@ class ChatbotGetChatHistoryEvent extends ChatbotSessionEvent {
   ChatbotGetChatHistoryEvent({required this.sessionId, required this.userId});
 }
 
+class ChatbotDeleteSessionEvent extends ChatbotSessionEvent {
+  final String userId;
+  final String sessionId;
+  ChatbotDeleteSessionEvent({required this.userId, required this.sessionId});
+}

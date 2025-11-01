@@ -20,4 +20,7 @@ class ChatbotChatHistorySuccess extends ChatbotSessionState {
   final ChatHistoryResponse response;
   ChatbotChatHistorySuccess(this.response);
 }
-
+class ChatbotDeleteSessionSuccess extends ChatbotSessionState {
+  final String sessionId;
+  ChatbotDeleteSessionSuccess(this.sessionId);
+}
