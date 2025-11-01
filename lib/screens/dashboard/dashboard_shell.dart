@@ -35,6 +35,7 @@ class _DashboardShellState extends State<DashboardShell> {
     {"type": "item", "label": "Rock Size Detection", "icon": Icons.image, "route": "/dashboard/rock-size"},
     {"type": "item", "label": "Clinker Quality", "icon": Icons.thermostat, "route": "/dashboard/clinker-quality"},
     {"type": "item", "label": "Emission Prediction", "icon": Icons.thermostat, "route": "/dashboard/emission-prediction"},
+    {"type": "item", "label": "Cement Strength", "icon": Icons.thermostat, "route": "/dashboard/cement-strength"}
 
   ];
 

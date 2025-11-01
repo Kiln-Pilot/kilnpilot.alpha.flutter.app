@@ -5,6 +5,7 @@ import 'package:kilnpilot_alpha_flutter_app/blocs/chatbot/chatbot_session_bloc.d
 import 'package:kilnpilot_alpha_flutter_app/blocs/ppe_detection_kpi/ppe_detection_bloc.dart';
 import 'package:kilnpilot_alpha_flutter_app/blocs/rock_size_detection_kpi/rock_detection_bloc.dart';
 import 'package:kilnpilot_alpha_flutter_app/repositories/cement_operations/chatbot_repository.dart';
+import 'package:kilnpilot_alpha_flutter_app/repositories/cement_strength_kpi/cement_strength_kpi_repository.dart';
 import 'package:kilnpilot_alpha_flutter_app/repositories/clinker_quality_kpi/clinker_quality_kpi_repository.dart';
 import 'package:kilnpilot_alpha_flutter_app/repositories/conveyor_belt_damage_kpi/conveyor_belt_damage_kpi_repository.dart';
 import 'package:kilnpilot_alpha_flutter_app/repositories/emission_prediction_kpi/emission_repository_kpi_repository.dart';
@@ -12,6 +13,7 @@ import 'package:kilnpilot_alpha_flutter_app/repositories/optimization/optimizati
 import 'package:kilnpilot_alpha_flutter_app/repositories/ppe_detection_kpi/ppe_detection_kpi_repository.dart';
 import 'package:kilnpilot_alpha_flutter_app/repositories/rock_size_detection_kpi/rock_size_detection_kpi_repository.dart';
 import 'package:kilnpilot_alpha_flutter_app/repositories/thermal_kpi/thermal_kpi_repository.dart';
+import 'package:kilnpilot_alpha_flutter_app/screens/cement_strength/cement_strength_screen.dart';
 import 'package:kilnpilot_alpha_flutter_app/screens/clinker_quality/clinker_quality_screen.dart';
 import 'package:kilnpilot_alpha_flutter_app/screens/conveyor_belt_damage/conveyor_belt_damage_screen.dart';
 import 'package:kilnpilot_alpha_flutter_app/screens/dashboard/dashboard.dart';
@@ -26,6 +28,7 @@ import 'package:kilnpilot_alpha_flutter_app/screens/chat/chatbot_screen.dart';
 import 'package:kilnpilot_alpha_flutter_app/screens/ppe_detection/ppe_detection_screen.dart';
 import 'package:kilnpilot_alpha_flutter_app/screens/rock_size_detection/rock_size_detection_screen.dart';
 
+import 'blocs/cement_strength_kpi/cement_strength_bloc.dart';
 import 'blocs/clinker_quality_kpi/clinker_quality_bloc.dart';
 import 'blocs/convery_belt_damage_kpi/conveyor_belt_damage_bloc.dart';
 import 'blocs/emission_prediction_kpi/emission_prediction_bloc.dart';
@@ -123,6 +126,15 @@ final GoRouter router = GoRouter(
             child: BlocProvider(
               create: (context) => EmissionPredictionBloc(EmissionPredictionRepository()),
               child: EmissionPredictionScreen(),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/dashboard/cement-strength',
+          pageBuilder: (context, state) => MaterialPage(
+            child: BlocProvider(
+              create: (context) => CementStrengthBloc(CementStrengthRepository()),
+              child: CementStrengthScreen(),
             ),
           ),
         ),
