@@ -47,13 +47,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBs61EmycN2z0f_D1iRBHiwTcN1dlqLaCw',
-    appId: '1:225035134736:web:f1f2ff3c5bda48c2216795',
-    messagingSenderId: '225035134736',
-    projectId: 'kiln-pilot',
-    authDomain: 'kiln-pilot.firebaseapp.com',
-    storageBucket: 'kiln-pilot.firebasestorage.app',
-    measurementId: 'G-1ZQBKEP0R4',
+    apiKey: 'AIzaSyCJ-0324D-36xDIdfhXq7uFSwVnBBpvaYs',
+    appId: '1:271364953125:web:cfb5a11f26465736971bcc',
+    messagingSenderId: '271364953125',
+    projectId: 'kiln-pilot-b0857',
+    authDomain: 'kiln-pilot-b0857.firebaseapp.com',
+    storageBucket: 'kiln-pilot-b0857.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
