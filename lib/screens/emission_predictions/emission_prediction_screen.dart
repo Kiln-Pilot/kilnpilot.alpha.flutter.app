@@ -99,7 +99,7 @@ class _EmissionPredictionScreenState extends State<EmissionPredictionScreen> {
     );
   }
 
-  Widget _buildBatchSection() => EmissionPredictionBatchSectionWidget(selectedFile: selectedFile, onPick: _pickBatchFile);
+  Widget _buildBatchSection() => EmissionPredictionBatchSectionWidget(selectedFile: selectedFile, onPick: _pickBatchFile, featuresMeta: featuresMeta);
 
   Widget _buildRealtimeSection() => EmissionPredictionRealtimeSectionWidget(onStart: _startRealtime, onStop: _stopRealtime, onSendSample: _sendRealtimeSample);
 

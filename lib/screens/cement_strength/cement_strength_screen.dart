@@ -1,13 +1,9 @@
 // filepath: lib/screens/cement_strength/cement_strength_screen.dart
-import 'dart:async';
-import 'dart:math';
-
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 import '../../blocs/cement_strength_kpi/cement_strength_bloc.dart';
 import 'sections/batch_section_widget.dart';
@@ -126,7 +122,7 @@ class _CementStrengthScreenState extends State<CementStrengthScreen> {
             ]),
             const SizedBox(height: 24),
             if (mode == 0) CementStrengthSingleSectionWidget(featuresMeta: featuresMeta, controllers: _controllers, formKey: _formKey),
-            if (mode == 1) CementStrengthBatchSectionWidget(selectedFile: selectedFile, onPick: _pickBatchFile),
+            if (mode == 1) CementStrengthBatchSectionWidget(selectedFile: selectedFile, onPick: _pickBatchFile, featuresMeta: featuresMeta),
             if (mode == 2) const CementStrengthRealtimeSectionWidget(),
             const SizedBox(height: 18),
             BlocConsumer<CementStrengthBloc, CementStrengthState>(
