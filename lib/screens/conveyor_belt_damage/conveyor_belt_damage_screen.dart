@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../blocs/convery_belt_damage_kpi/conveyor_belt_damage_bloc.dart';
+import '../../repositories/conveyor_belt_damage_kpi/serializers/conveyor_ws_response.dart';
 import 'scanning_options/image_section_widget.dart';
 import 'scanning_options/video_section_widget.dart';
 import 'scanning_options/stream_section_widget.dart';
@@ -426,7 +427,33 @@ class _ConveyorBeltDamageScreenState extends State<ConveyorBeltDamageScreen> wit
                           if (analysis.analysis != null) ...[
                             Text('Alerts Created: ${analysis.alertsCreated ?? 0}', style: GoogleFonts.poppins(fontSize: 16)),
                             Text('Frame Info: ${jsonEncode(analysis.frameInfo)}', style: GoogleFonts.poppins(fontSize: 16)),
-                            Text('Analysis: ${jsonEncode(analysis.analysis)}', style: GoogleFonts.poppins(fontSize: 16)),
+                            // If predictions exist inside analysis, render them as a list
+                            Builder(builder: (ctx) {
+                              final a = analysis.analysis!;
+                              if (a.containsKey('predictions') && a['predictions'] is List) {
+                                final List<dynamic> raw = a['predictions'] as List<dynamic>;
+                                final preds = raw
+                                    .map((e) => DamagePredictionItem.fromJson(Map<String, dynamic>.from(e as Map)))
+                                    .toList();
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 8),
+                                    Text('Detections:', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+                                    const SizedBox(height: 8),
+                                    ...preds.map((p) => Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                          child: Text(
+                                            'Label: ${p.label ?? p.classId}  Confidence: ${p.confidence.toStringAsFixed(2)}  BBox: ${p.xyxy.map((v) => v.toStringAsFixed(1)).join(', ')}',
+                                            style: GoogleFonts.poppins(fontSize: 14),
+                                          ),
+                                        )),
+                                  ],
+                                );
+                              }
+                              // Fallback: show raw analysis JSON
+                              return Text('Analysis: ${jsonEncode(a)}', style: GoogleFonts.poppins(fontSize: 16));
+                            }),
                           ],
                         ],
                       ),
